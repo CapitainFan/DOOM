@@ -57,12 +57,27 @@ class RayCasting:
 
             # depth, texture offset
             if depth_vert < depth_hor:
-                depth = depth_vert
+                depth, texture = depth_vert, texture_vert
+                y_vert %= 1
+                offset = y_vert if cos_a > 0 else (1 - y_vert)
             else:
-                depth = depth_hor
+                depth, texture = depth_hor, texture_hor
+                x_hor %= 1
+                offset = (1 - x_hor) if sin_a > 0 else x_hor
 
-            pg.draw.line(self.game.screen, 'yellow', (100*ox, 100*oy), 
-                        (100*ox+100*depth*cos_a, 100*oy+100*depth*sin_a), 2)
+            # remove fishbowl effect
+            depth *= math.cos(self.game.player.angle - ray_angle)
+
+            # projection
+            proj_height = SCREEN_DIST / (depth + 0.0001)
+
+            color = [255 / (1 + depth ** 5 * 0.00002)] * 3
+
+            pg.draw.rect(self.game.screen, color,
+                        (ray*SCALE, HALF_HEIGHT-proj_height//2, SCALE, proj_height))
+
+            # ray casting result
+            # self.ray_casting_result.append((depth, proj_height, texture, offset))
 
             ray_angle += DELTA_ANGLE
 
